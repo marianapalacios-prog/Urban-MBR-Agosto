@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urban Forks — MBR Agosto 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --paper:#faf5ea; --paper2:#fdf9f2; --card:#ffffff; --ink:#2b2013; --ink-soft:#6b5d47;
+    --gold:#c9a24b; --gold-dark:#a9822e; --line:#e9dfc9;
+    --green-bg:#e8f4ea; --green-tx:#276b3f; --amber-bg:#fbedd6; --amber-tx:#8a5a10;
+    --blue-bg:#e6eef7; --blue-tx:#2c5282; --purple-bg:#efe7f7; --purple-tx:#5b3a86;
+    --red-bg:#fbe9e6; --red-tx:#a13e2c;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Manrope',sans-serif;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.serif{font-family:'Playfair Display',serif;}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+  header.top{padding:36px 0 22px;border-bottom:2px solid var(--gold);margin-bottom:22px;}
+  header.top .eyebrow{letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--gold-dark);font-weight:700;}
+  header.top h1{font-size:34px;margin:6px 0 4px;color:var(--ink);}
+  header.top .sub{color:var(--ink-soft);font-size:14.5px;line-height:1.6;max-width:760px;}
+  nav.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px;}
+  nav.tabs button{font-family:'Manrope',sans-serif;font-weight:700;font-size:13.5px;padding:10px 18px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink-soft);cursor:pointer;transition:.15s;}
+  nav.tabs button:hover{border-color:var(--gold);color:var(--ink);}
+  nav.tabs button.active{background:linear-gradient(-45deg,#fe663d,#ff3d55);color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(255,61,85,.25);}
+  section.tabpanel{display:none;}
+  section.tabpanel.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:20px;}
+  .card h2{font-size:20px;margin:0 0 4px;}
+  .card .hint{color:var(--ink-soft);font-size:13px;margin-bottom:16px;}
+  .grid-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;}
+  .kpi{background:var(--paper2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
+  .kpi .label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);font-weight:700;}
+  .kpi .value{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;margin:6px 0 10px;}
+  .kpi .deltas{display:flex;flex-direction:column;gap:4px;font-size:12.5px;}
+  .delta{display:inline-flex;align-items:center;gap:5px;padding:2px 0;}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-weight:700;font-size:11.5px;}
+  .pill.up{background:var(--green-bg);color:var(--green-tx);}
+  .pill.down{background:var(--amber-bg);color:var(--amber-tx);}
+  .pill.flat{background:var(--blue-bg);color:var(--blue-tx);}
+  .chart-box{position:relative;height:280px;}
+  .chart-box.small{height:230px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);border-bottom:2px solid var(--line);padding:8px 10px;}
+  td{padding:9px 10px;border-bottom:1px solid var(--line);}
+  tr:last-child td{border-bottom:none;}
+  .tag{display:inline-block;padding:2px 9px;border-radius:8px;font-size:11.5px;font-weight:700;}
+  .tag.c-red{background:var(--red-bg);color:var(--red-tx);}
+  .tag.c-yellow{background:var(--amber-bg);color:var(--amber-tx);}
+  .tag.c-green{background:var(--green-bg);color:var(--green-tx);}
+  .tag.c-blue{background:var(--blue-bg);color:var(--blue-tx);}
+  .tag.c-purple{background:var(--purple-bg);color:var(--purple-tx);}
+  .funnel-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:6px;}
+  .funnel-step{background:var(--paper2);border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:120px;text-align:center;}
+  .funnel-step .n{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;}
+  .funnel-step .l{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
+  .funnel-arrow{font-size:13px;color:var(--gold-dark);font-weight:700;text-align:center;min-width:70px;}
+  .opp-list{display:grid;gap:12px;margin-top:6px;}
+  .opp{background:var(--paper2);border-left:4px solid var(--gold);border-radius:10px;padding:12px 16px;font-size:13.5px;line-height:1.55;}
+  .opp b{color:var(--ink);}
+  .idea{background:var(--paper2);border-left:4px solid #2c5282;border-radius:10px;padding:12px 16px;font-size:13.5px;line-height:1.55;}
+  .idea b{color:var(--ink);}
+  .idea.caution{border-left-color:var(--amber-tx);}
+  .idea .caution-tag{display:inline-block;margin-bottom:6px;}
+  .plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+  .plan-card{background:var(--paper2);border:1px solid var(--line);border-radius:14px;padding:18px 20px;}
+  .plan-card h3{margin:0 0 2px;font-size:17px;}
+  .plan-card .momento{font-size:12.5px;color:var(--gold-dark);font-weight:700;margin-bottom:10px;}
+  .plan-card .row{display:flex;gap:8px;margin-bottom:8px;font-size:13.5px;line-height:1.5;}
+  .plan-card .row .ico{flex:none;}
+  .semaphore{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;padding:6px 14px;border-radius:999px;}
+  .brand-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;}
+  .brand-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;cursor:pointer;transition:.15s;}
+  .brand-card:hover{border-color:var(--gold);transform:translateY(-2px);}
+  .brand-card h3{margin:2px 0 8px;font-size:19px;}
+  .brand-card .cat{font-size:11.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+  .brand-card .metric{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-top:1px dashed var(--line);}
+  .footer-note{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:30px;}
+  .two-col{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+  @media (max-width:800px){.two-col{grid-template-columns:1fr;}}
+  .note-small{font-size:11.5px;color:var(--ink-soft);margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Rappi México · Key Account Management</div>
+    <h1>Urban Forks — Monthly Business Review</h1>
+    <div class="sub">Corte de <b>Agosto 2026</b> · Laduree, Fratelli La Bufala, Janken–Menya y Tori Tori. Cifras de ventas en pesos mexicanos (MXN). Las comparaciones YoY, MoM y WoW están homologadas por promedio diario para que el largo de cada periodo no distorsione la lectura. Generado el 11 de septiembre de 2026.</div>
+  </header>
+
+  <nav class="tabs" id="tabnav"></nav>
+  <div id="panels"></div>
+
+  <div class="footer-note">Generado el 11 de septiembre de 2026 · Brand IDs: 565599 (Laduree) · 417 / 656155 Turbo (Fratelli La Bufala) · 653426 / 655345 Turbo (Janken–Menya) · 1098 / 656149 Turbo (Tori Tori)</div>
+</div>
+
+<script>
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+function fmtMoney(n){ if(n==null||isNaN(n)) return '—'; return '$' + Math.round(n).toLocaleString('es-MX'); }
+function fmtNum(n){ if(n==null||isNaN(n)) return '—'; return Math.round(n).toLocaleString('es-MX'); }
+function pct(a,b){ if(b===0||b==null||a==null) return null; return ((a-b)/b)*100; }
+function pctLabel(p, invert){ if(p==null) return '<span class="pill flat">s/d</span>';
+  const up = invert ? p<0 : p>0;
+  const cls = Math.abs(p) < 1.5 ? 'flat' : (up?'up':'down');
+  const sign = p>0?'+':''; return `<span class="pill ${cls}">${sign}${p.toFixed(1)}%</span>`; }
+function monthLabels(startYear,startMonthIdx,count){ // startMonthIdx 0-based
+  const out=[]; let y=startYear,m=startMonthIdx;
+  for(let i=0;i<count;i++){ out.push(MESES[m] + " '" + String(y).slice(2)); m++; if(m>11){m=0;y++;} }
+  return out;
+}
+
+const BRANDS = [
+{
+  id:'laduree', name:'Laduree', category:'Postres', color:'#c9a24b',
+  headline:'Marca chica y estable, con ticket premium consistente y espacio para activar temporada de regalos.',
+  semaphore:{cls:'c-green', label:'Saludable'},
+  dias:31,
+  kpis:{
+    ordenes:{actual:31, mom:16, yoy:29},
+    venta:{actual:29519, mom:22904, yoy:27276},
+    aov:{actual:952, mom:1431, yoy:941},
+    usuarios:{actual:31, mom:16, yoy:26}
+  },
+  wow:{ actual:{ordenes:3, venta:3220}, anterior:{ordenes:6, venta:5973} },
+  l12m:{ labels: monthLabels(2025,8,12), data:[27347,40353,31198,83618,79053,94903,72414,40948,48458,40256,22904,29519] },
+  stores:[
+    {name:'Ladurée', ordenes:34, cancel:5.88, defect:0.00, wait:0.73, conv:6.46}
+  ],
+  funnel:{ss:526, atc:64, op:41, opc:34},
+  benchmark:{ producto:'Colección napoleón 6 macarons', labels: monthLabels(2025,8,12), mercado:[17.14,16.19,14.65,12.60,15.71,12.97,18.50,16.46,19.81,13.17,16.92,17.87] },
+  top10:[
+    {n:'Colección arabesque de 18 macarons', ordenes:4, revenue:6600},
+    {n:'Colección arabesque de 8 macarons', ordenes:4, revenue:3900},
+    {n:'Colección napoleón 6 macarons', ordenes:5, revenue:2950},
+    {n:'Colección prestige de 30 macarons', ordenes:1, revenue:2550},
+    {n:'Fondant pistache (6-8 personas)', ordenes:2, revenue:1990},
+    {n:'Caja de regalo 12 eugénie', ordenes:1, revenue:1350},
+    {n:'Fondant citron (6-8 personas)', ordenes:1, revenue:1195},
+    {n:'Batons de Maréchaux', ordenes:3, revenue:800},
+    {n:'Fondant chocolate (6-8 personas)', ordenes:1, revenue:795},
+    {n:'Caja de regalo 6 eugénie', ordenes:1, revenue:750}
+  ],
+  oportunidades:[
+    'El producto top de la marca (Colección napoleón) capta en promedio 5-8x más valor por unidad que el promedio de la categoría Postres en el resto del mercado — la marca está bien posicionada como opción premium, vale la pena mantener ese precio ancla en vez de competir por volumen bajo.',
+    '<b>Pain au chocolat pistache</b> y <b>Conchita vanille</b> aparecieron juntos en 3 pedidos de los últimos dos meses — buen candidato a combo de desayuno/oficina con precio ligeramente menor a la suma.',
+    '<b>Batons de Maréchaux</b> tiene 3 pedidos pero el ticket por pedido más bajo del top 10 ($266) — oportunidad de subir el mix agregándolo como acompañante de una colección de macarons en vez de venderlo solo.'
+  ],
+  plan360:[
+    {mes:'Septiembre', momento:'Mes Patrio · regreso a rutina de oficina', ico:'🎯', palanca:'Activar combo desayuno/oficina con Croissant ladurée + Conchita vanille — combinación que ya se repite de forma natural en pedidos reales.', timing:'Primeras 2 semanas de septiembre, horario de media mañana.'},
+    {mes:'Octubre', momento:'Preparación de Día de Muertos y Halloween', ico:'🎯', palanca:'Edición limitada de macarons/fondants de temporada + impulsar las cajas de regalo (ya con tracción en agosto) como opción de detalle para Halloween.', timing:'Desde la segunda semana de octubre.'},
+    {mes:'Noviembre', momento:'Día de Muertos (pan de muerto) y Buen Fin', ico:'🎯', palanca:'Bundle de dos colecciones de macarons con precio ancla para Buen Fin, más una pieza de temporada (estilo pan de muerto Ladurée) para la primera semana.', timing:'Pan de muerto: 1-2 nov · Buen Fin: tercer fin de semana de noviembre.'}
+  ],
+  ideas:[
+    'Sumar una línea de <b>bebidas</b> al catálogo de Rappi — empezando por un <b>Iced Rose Matcha Cloud</b> como bebida insignia de temporada.',
+    'Combo <b>Bebida fría + croissant salado</b>, pensado para el horario de oficina/almuerzo.',
+    'Combo <b>Bebida + panadería</b> como opción de entrada de precio más accesible que las colecciones de macarons.',
+    'Colaborar en <b>video de producto</b> explicando los beneficios/diferenciales de la confitería y galletería Ladurée — buen contenido para la ficha de Rappi y para redes.'
+  ]
+},
+{
+  id:'fratelli', name:'Fratelli La Bufala', category:'Italiana', color:'#2c5282',
+  headline:'Venta por debajo del año pasado tras el pico de abril, pero agosto ya muestra el primer repunte mensual.',
+  semaphore:{cls:'c-yellow', label:'Punto de atención'},
+  dias:31,
+  kpis:{
+    ordenes:{actual:84, mom:79, yoy:164},
+    venta:{actual:80834, mom:72006, yoy:148730},
+    aov:{actual:962, mom:911, yoy:907},
+    usuarios:{actual:74, mom:70, yoy:133}
+  },
+  wow:{ actual:{ordenes:22, venta:20590}, anterior:{ordenes:15, venta:15806} },
+  l12m:{ labels: monthLabels(2025,8,12), data:[102222,115170,165360,162875,141114,140818,172597,200146,140193,133997,72006,80834] },
+  stores:[
+    {name:'Fratelli La Bufala', ordenes:84, cancel:0.00, defect:2.38, wait:2.53, conv:14.05},
+    {name:'Fratelli La Bufala Turbo', ordenes:0, cancel:null, defect:null, wait:null, conv:0.00, nota:true}
+  ],
+  funnel:{ss:653, atc:119, op:93, opc:84},
+  benchmark:{ producto:'Ragú alla bolognese', labels: monthLabels(2025,8,12), mercado:[70.33,71.23,70.46,76.83,95.98,88.29,60.66,63.78,61.44,60.75,65.47,86.97] },
+  top10:[
+    {n:'Ragú alla bolognese', ordenes:15, revenue:5745},
+    {n:'Penne alla vodka con burrata', ordenes:10, revenue:5200},
+    {n:'Pizza margherita', ordenes:15, revenue:4890},
+    {n:'Pizza margherita d.o.p', ordenes:4, revenue:2836},
+    {n:'Lasagna al forno', ordenes:5, revenue:2365},
+    {n:'Fusilli 4 formaggi', ordenes:6, revenue:2268},
+    {n:'Gnocchi', ordenes:6, revenue:2046},
+    {n:'Filetto', ordenes:4, revenue:2016},
+    {n:'Spaghetti e polpetta', ordenes:5, revenue:1995},
+    {n:'Melanzane alla siciliana', ordenes:4, revenue:1848}
+  ],
+  oportunidades:[
+    'El Ragú alla bolognese sigue capturando más valor por unidad que el promedio del mercado italiano, pero la brecha se cerró bastante en agosto (de ~65 a ~87 de índice) — vale la pena revisar si el ticket del plato bajó por promociones o cambio de porción.',
+    '<b>Tiramisú</b> + <b>Coca-cola sin azúcar</b> se repitió en 3 pedidos — candidato claro a combo de cierre (postre + bebida) en checkout.',
+    '<b>Arancini</b> + <b>Penne alla vodka con burrata</b> (entrada + fuerte) y <b>Penne alla vodka</b> + <b>Pizza margherita</b> también se repiten 3 veces cada uno — dos combos de "para compartir" con buen potencial de ticket.',
+    'La tienda Turbo tiene 55 sesiones pero 0 confirmadas este mes — antes de sumarle presupuesto de marketing vale la pena revisar disponibilidad de catálogo y horario en esa modalidad.'
+  ],
+  plan360:[
+    {mes:'Septiembre', momento:'Mes Patrio · fin de vacaciones', ico:'🎯', palanca:'Reactivar frecuencia con el combo Arancini + Penne alla vodka con burrata (para compartir) y revisar catálogo/horario de la tienda Turbo, hoy con conversión en cero.', timing:'Primera quincena de septiembre.'},
+    {mes:'Octubre', momento:'Preparación de Halloween', ico:'🎯', palanca:'Combo pizza + Tiramisú para noche de Halloween, apalancando el par Tiramisú + bebida ya identificado en la data.', timing:'Últimos 10 días de octubre, franja nocturna.'},
+    {mes:'Noviembre', momento:'Buen Fin', ico:'🎯', palanca:'Combo ancla Penne alla vodka + Pizza margherita con descuento Buen Fin — es el segundo par más repetido del mes.', timing:'Tercer fin de semana de noviembre.'}
+  ],
+  diagAlert:true,
+  ideas:[
+    'Armar un <b>menú completo en combo</b> (sopa/entrada + plato fuerte + postre) a precio cerrado — hoy el catálogo top 10 es 100% platos fuertes, sin ningún postre o entrada en el top de ventas, así que un combo armado le resuelve al usuario la decisión y sube el ticket.',
+    'En esa misma lógica, un combo de <b>bebida caliente + postre</b> podría subir el AOV de ese pedido en un rango estimado de <b>10-15%</b> sobre el ticket actual (~$962 MXN) — es una estimación aproximada basada en el precio típico de un postre + bebida (~$100-150 MXN) sobre el AOV de agosto, no un dato medido directo, porque ningún postre ni bebida aparece hoy en el top 10 de ventas de la marca (es decir, el attach actual es bajo y hay espacio real de mejora).',
+    'Preguntarle a la marca si tienen <b>planes de expansión</b> (nuevas sucursales) — ayudaría a dimensionar inversión de mediano plazo en la cuenta.',
+    'Confirmar con la marca si hay algún <b>problema de conectividad</b> operativo — la tienda Turbo tuvo 55 sesiones y 0 pedidos confirmados este mes, lo cual también puede apuntar a un tema de disponibilidad/tableta más que solo de demanda.'
+  ]
+},
+{
+  id:'janken', name:'Janken – Menya', category:'Asiática', color:'#5b3a86',
+  headline:'Marca joven (arrancó en enero) que tocó su pico en febrero y desde entonces viene en caída sostenida.',
+  semaphore:{cls:'c-yellow', label:'Punto de atención'},
+  dias:31,
+  kpis:{
+    ordenes:{actual:9, mom:8, yoy:null},
+    venta:{actual:5732, mom:4738, yoy:null},
+    aov:{actual:637, mom:592, yoy:null},
+    usuarios:{actual:9, mom:7, yoy:null}
+  },
+  wow:{ actual:{ordenes:6, venta:4440}, anterior:{ordenes:0, venta:0} },
+  l12m:{ labels: monthLabels(2026,0,8), data:[16276,21692,13715,17690,11164,3165,4738,5732], startsLate:true },
+  stores:[
+    {name:'Janken Menya Turbo', ordenes:6, cancel:0.00, defect:16.67, wait:9.94, conv:13.04},
+    {name:'Janken Menya', ordenes:3, cancel:0.00, defect:0.00, wait:5.33, conv:7.69},
+    {name:'Janken Menya - Plaza Satélite', ordenes:0, cancel:null, defect:null, wait:null, conv:0.00, nota:true}
+  ],
+  funnel:{ss:86, atc:19, op:16, opc:9},
+  benchmark:{ producto:'Chashu Aka Tonkotsu', labels:['Mar 26','May 26','Jun 26','Jul 26'], mercado:[57.99,65.77,65.57,60.68] },
+  top10:[
+    {n:'Chashu Tonkotsu Miso', ordenes:3, revenue:1240},
+    {n:'Tokyo Tori Shoyu', ordenes:2, revenue:980},
+    {n:'Chashu aka tonkotsu', ordenes:3, revenue:867},
+    {n:'Chashu tonkotsu miso', ordenes:1, revenue:556},
+    {n:'Chashu Aka Tonkotsu', ordenes:2, revenue:550},
+    {n:'Tokyo tori shoyu', ordenes:1, revenue:257},
+    {n:'Pollo Karaage', ordenes:1, revenue:190},
+    {n:'Gyoza', ordenes:1, revenue:190},
+    {n:'Té Verde Frio 150 Ml', ordenes:1, revenue:160},
+    {n:'Edamame', ordenes:1, revenue:150}
+  ],
+  oportunidades:[
+    'El ramen tonkotsu de la marca vende consistentemente por encima del promedio de la categoría Asiática (índice de mercado 58-66) — el producto ancla funciona; el reto es de frecuencia, no de producto.',
+    '<b>Chashu Aka Tonkotsu</b> + <b>Gyoza</b> se repitió 4 veces en el trimestre — combo natural de ramen + entrada para subir ticket.',
+    'La sucursal Plaza Satélite prácticamente no tuvo actividad este mes (1 sesión, 0 pedidos) — vale la pena confirmar si sigue operando con normalidad antes de invertir en visibilidad ahí.',
+    'La tasa de defectos de la tienda Turbo (16.7%) es notablemente más alta que el resto de la marca — oportunidad de ajuste operativo puntual antes de empujar más demanda a esa modalidad.'
+  ],
+  plan360:[
+    {mes:'Septiembre', momento:'Mes Patrio', ico:'🎯', palanca:'Combo Chashu Aka Tonkotsu + Gyoza para recuperar frecuencia, y revisar disponibilidad de menú en Plaza Satélite y calidad operativa en Turbo antes de escalar.', timing:'Todo el mes, con foco en la primera quincena.'},
+    {mes:'Octubre', momento:'Preparación de Halloween', ico:'🎯', palanca:'Ramen caliente como opción de "noche fría" con entrega nocturna temática.', timing:'Últimas dos semanas de octubre.'},
+    {mes:'Noviembre', momento:'Buen Fin', ico:'🎯', palanca:'Combo ancla ramen + entrada con descuento Buen Fin para atraer usuarios nuevos y recuperar volumen.', timing:'Tercer fin de semana de noviembre.'}
+  ],
+  diagAlert:true,
+  ideas:[
+    '<span class="caution-tag tag c-yellow">Revisar antes de avanzar — riesgo de derechos</span> La idea es armar una sección de menú con nombres/personajes de <b>Power Rangers</b> (ej. "Ranger Negro"). No queremos tener problemas legales, así que la idea queda sujeta a confirmar si es posible conseguir la licencia correspondiente — de lograrse, podría potenciar muchísimo la visibilidad de la marca a nivel masivo.',
+    'Alternativa sin riesgo de marca: un menú temático por <b>colores</b> ("Ramen Rojo", "Ramen Negro", "Ramen Azul" según nivel de picor o tipo de caldo) — capta la misma idea visual/lúdica sin usar nombres ni personajes de una franquicia registrada.'
+  ]
+},
+{
+  id:'toritori', name:'Tori Tori', category:'Sushi', color:'#a13e2c',
+  headline:'La marca más grande del grupo: crecimiento sólido contra el año pasado, aunque el ticket promedio bajó este mes.',
+  semaphore:{cls:'c-green', label:'Saludable, con un mix a revisar'},
+  dias:31,
+  kpis:{
+    ordenes:{actual:728, mom:702, yoy:590},
+    venta:{actual:970817, mom:1142602, yoy:779073},
+    aov:{actual:1334, mom:1628, yoy:1320},
+    usuarios:{actual:557, mom:542, yoy:430}
+  },
+  wow:{ actual:{ordenes:173, venta:235249}, anterior:{ordenes:173, venta:230656} },
+  l12m:{ labels: monthLabels(2025,8,12), data:[811587,878780,1019256,1041500,1255285,1145291,1192618,1393671,1213604,1124422,1142602,970817] },
+  stores:[
+    {name:'Tori Tori Anatole', ordenes:200, cancel:0.00, defect:2.50, wait:4.74, conv:17.96},
+    {name:'Tori Tori Condesa', ordenes:135, cancel:0.00, defect:2.96, wait:1.43, conv:6.76},
+    {name:'Tori Tori Lomas', ordenes:98, cancel:0.00, defect:2.04, wait:4.35, conv:30.82},
+    {name:'Tori Tori Altavista', ordenes:93, cancel:1.08, defect:5.38, wait:6.88, conv:6.05, flagDefect:true},
+    {name:'Tori Tori Duraznos', ordenes:91, cancel:0.00, defect:4.40, wait:6.02, conv:16.64},
+    {name:'Tori Tori Santa Fe', ordenes:67, cancel:0.00, defect:5.97, wait:2.97, conv:9.05},
+    {name:'Tori Tori Satélite', ordenes:28, cancel:0.00, defect:0.00, wait:14.47, conv:3.05, flagWait:true, flagConv:true},
+    {name:'Tori Tori Condesa Turbo', ordenes:11, cancel:0.00, defect:0.00, wait:3.61, conv:8.94},
+    {name:'Tori Tori Altavista Turbo', ordenes:7, cancel:14.29, defect:0.00, wait:2.26, conv:12.07},
+    {name:'Tori Tori Santa Fe Turbo', ordenes:3, cancel:0.00, defect:0.00, wait:0.60, conv:6.00}
+  ],
+  funnel:{ss:7392, atc:1335, op:820, opc:733},
+  benchmark:{ producto:'Chirashi de Salmón Marinado', labels:['Abr 26','May 26','Jun 26','Jul 26','Ago 26'], mercado:[35.65,35.39,37.08,35.85,34.18] },
+  top10:[
+    {n:'Chirashi de Salmón Marinado', ordenes:142, revenue:96145},
+    {n:'Chirashi de Atún Marinado', ordenes:75, revenue:49800},
+    {n:'Brocheta de Queso Manchego', ordenes:179, revenue:40096},
+    {n:'Rollo de Atún Spicy', ordenes:63, revenue:31898},
+    {n:'Rollo de Salmón Spicy', ordenes:66, revenue:29859},
+    {n:'Tacos de Rib Eye', ordenes:39, revenue:26458},
+    {n:'Yakimeshi Mixto', ordenes:91, revenue:22952},
+    {n:'Donburi de Rib Eye', ordenes:34, revenue:22776},
+    {n:'Rollo Alaska', ordenes:39, revenue:19156},
+    {n:'BOX 06 - Cocina Caliente & Sushi', ordenes:4, revenue:19152}
+  ],
+  oportunidades:[
+    'El Chirashi de Salmón Marinado capta de forma consistente ~3 veces el valor por unidad del promedio de la categoría Sushi en el mercado (índice 34-37 los últimos 5 meses) — es el producto insignia y sostiene el ticket alto de la marca.',
+    '<b>Brocheta de Queso Manchego</b> es prácticamente un acompañante universal: apareció junto al Chirashi de Salmón en 28 pedidos, con el de Atún en 26, con Yakimeshi Mixto en 26 y con Edamame en 21 — es el candidato número uno para un combo ancla "entrada + fuerte" en todas las sucursales.',
+    'El AOV bajó 18% contra julio pese a que subieron las órdenes — vale la pena revisar si fue mezcla hacia productos de menor ticket o mayor peso de promociones, para no perder margen de cara al Buen Fin.',
+    'Satélite combina el mayor tiempo de espera del repartidor (14.5 min) y la conversión más baja del grupo (3.05%) — igual que se observó en revisiones anteriores; sigue siendo la sucursal con más espacio de mejora operativa.',
+    'Altavista mantiene la tasa de defectos más alta entre las sucursales grandes (5.38%) — oportunidad de ajuste puntual con el equipo de cocina.'
+  ],
+  plan360:[
+    {mes:'Septiembre', momento:'Mes Patrio', ico:'🎯', palanca:'Lanzar el combo ancla Brocheta de Queso Manchego + Chirashi (Salmón o Atún) en todas las sucursales — es el acompañamiento con más tracción orgánica del catálogo — y revisar el mix de producto que explica la caída de AOV.', timing:'Desde la primera semana de septiembre.'},
+    {mes:'Octubre', momento:'Halloween', ico:'🎯', palanca:'Rolls temáticos + entrega nocturna para la noche de Halloween, apalancando el horario alto de Anatole y Condesa.', timing:'28-31 de octubre.'},
+    {mes:'Noviembre', momento:'Día de Muertos y Buen Fin', ico:'🎯', palanca:'Combo ancla con precio cerrado (Brocheta + Chirashi + rollo) para Buen Fin, y foco operativo en Satélite (tiempos) y Altavista (defectos) antes del pico de demanda.', timing:'Buen Fin: tercer fin de semana de noviembre.'}
+  ],
+  ideas:[
+    'Aprovechar el lanzamiento de <b>Fua Fua en Tori Tori Anatole</b> para sumar los <b>Fluffy Japanese Pancakes</b> al catálogo de Rappi — es un producto ya validado en tienda física, así que el riesgo de sumarlo a delivery es bajo.',
+    'Abrir conversación de <b>colaboración de desayunos</b> con la marca (pancakes + bebida caliente/fría) — franja horaria que hoy el catálogo de Tori Tori no está capturando, al ser una marca enfocada en comida/cena.'
+  ]
+}
+];
+
+// ---------- RENDER ----------
+const tabnav = document.getElementById('tabnav');
+const panels = document.getElementById('panels');
+
+function addTab(id, label){
+  const b = document.createElement('button');
+  b.textContent = label; b.dataset.tab = id;
+  b.onclick = () => selectTab(id);
+  tabnav.appendChild(b);
+}
+function selectTab(id){
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.tab===id));
+  document.querySelectorAll('section.tabpanel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+id));
+}
+
+addTab('resumen','Resumen General');
+BRANDS.forEach(b=>addTab(b.id, b.name));
+
+// ---- Resumen general panel ----
+const resumen = document.createElement('section');
+resumen.className='tabpanel'; resumen.id='panel-resumen';
+let brandCardsHtml = '<div class="brand-summary">';
+BRANDS.forEach(b=>{
+  const dVenta = pct(b.kpis.venta.actual, b.kpis.venta.yoy);
+  brandCardsHtml += `<div class="brand-card" onclick="selectTab('${b.id}')">
+    <span class="tag ${b.semaphore.cls}">${b.semaphore.label}</span>
+    <h3>${b.name}</h3>
+    <div class="cat">${b.category}</div>
+    <div class="metric"><span>Órdenes (mes)</span><b>${fmtNum(b.kpis.ordenes.actual)}</b></div>
+    <div class="metric"><span>Venta (mes, MXN)</span><b>${fmtMoney(b.kpis.venta.actual)}</b></div>
+    <div class="metric"><span>YoY Venta</span>${pctLabel(dVenta)}</div>
+  </div>`;
+});
+brandCardsHtml += '</div>';
+resumen.innerHTML = `
+  <div class="card">
+    <h2>Cómo cerró el grupo Urban Forks en agosto</h2>
+    <div class="hint">Click en cualquier marca para ver su detalle completo.</div>
+    ${brandCardsHtml}
+  </div>
+  <div class="card">
+    <h2>Lectura ejecutiva</h2>
+    <div class="opp-list">
+      <div class="opp"><b>Laduree</b> y <b>Tori Tori</b> llegan a septiembre en buen nivel: Laduree con ticket premium estable y Tori Tori con crecimiento YoY de doble dígito, aunque vale la pena vigilar la baja de AOV del mes.</div>
+      <div class="opp"><b>Fratelli La Bufala</b> y <b>Janken–Menya</b> muestran un punto de atención: ambas vienen de varios meses de caída desde su pico (abril y febrero respectivamente), aunque agosto ya trae el primer indicio de estabilización en las dos.</div>
+      <div class="opp">El hallazgo más accionable del corte es el combo <b>Brocheta de Queso Manchego</b> en Tori Tori — se repite en decenas de pedidos junto a los platos principales y es el candidato más claro para un lanzamiento inmediato de combo ancla.</div>
+    </div>
+  </div>
+`;
+panels.appendChild(resumen);
+
+// ---- Per-brand panels ----
+BRANDS.forEach(b=>{
+  const sec = document.createElement('section');
+  sec.className='tabpanel'; sec.id='panel-'+b.id;
+
+  function kpiCard(label, obj, isMoney){
+    const fmt = isMoney ? fmtMoney : fmtNum;
+    const dMom = pct(obj.actual, obj.mom);
+    const dYoy = obj.yoy!=null ? pct(obj.actual, obj.yoy) : null;
+    const perDia = obj.actual / b.dias;
+    return `<div class="kpi">
+      <div class="label">${label}</div>
+      <div class="value">${fmt(obj.actual)}</div>
+      <div class="deltas">
+        <div class="delta">MoM ${pctLabel(dMom)}</div>
+        <div class="delta">YoY ${dYoy!=null ? pctLabel(dYoy) : '<span class="pill flat">marca nueva</span>'}</div>
+        <div class="delta" style="color:var(--ink-soft);">Prom. diario: ${fmt(perDia)}</div>
+      </div>
+    </div>`;
+  }
+
+  const dOrdWow = pct(b.wow.actual.ordenes, b.wow.anterior.ordenes);
+  const dVentaWow = pct(b.wow.actual.venta, b.wow.anterior.venta);
+
+  let storesRows = '';
+  b.stores.forEach(s=>{
+    storesRows += `<tr>
+      <td>${s.name}</td>
+      <td>${fmtNum(s.ordenes)}</td>
+      <td>${s.cancel!=null ? s.cancel.toFixed(2)+'%' : '—'}</td>
+      <td>${s.defect!=null ? (s.flagDefect?'<span class="tag c-yellow">'+s.defect.toFixed(2)+'%</span>':s.defect.toFixed(2)+'%') : '—'}</td>
+      <td>${s.wait!=null ? (s.flagWait?'<span class="tag c-yellow">'+s.wait.toFixed(2)+' min</span>':s.wait.toFixed(2)+' min') : '—'}</td>
+      <td>${s.flagConv?'<span class="tag c-yellow">'+s.conv.toFixed(2)+'%</span>':s.conv.toFixed(2)+'%'}</td>
+    </tr>`;
+  });
+
+  let top10Rows = '';
+  b.top10.forEach((p,i)=>{
+    top10Rows += `<tr><td>${i+1}</td><td>${p.n}</td><td>${fmtNum(p.ordenes)}</td><td>${fmtMoney(p.revenue)}</td></tr>`;
+  });
+
+  let oppHtml = '';
+  b.oportunidades.forEach(o=> oppHtml += `<div class="opp">${o}</div>`);
+
+  let planHtml = '';
+  b.plan360.forEach(p=>{
+    planHtml += `<div class="plan-card">
+      <h3>${p.mes}</h3>
+      <div class="momento">${p.momento}</div>
+      <div class="row"><span class="ico">${p.ico}</span><span>${p.palanca}</span></div>
+      <div class="row"><span class="ico">📅</span><span>${p.timing}</span></div>
+    </div>`;
+  });
+
+  let ideasHtml = '';
+  if(b.ideas && b.ideas.length){
+    b.ideas.forEach(i=>{
+      const isCaution = i.indexOf('caution-tag')!==-1;
+      ideasHtml += `<div class="idea${isCaution?' caution':''}">${i}</div>`;
+    });
+  }
+
+  const conv1 = (100*b.funnel.atc/b.funnel.ss).toFixed(1);
+  const conv2 = (100*b.funnel.op/b.funnel.atc).toFixed(1);
+  const conv3 = (100*b.funnel.opc/b.funnel.op).toFixed(1);
+
+  sec.innerHTML = `
+    <div class="card">
+      <h2>${b.name} <span class="tag ${b.semaphore.cls}" style="margin-left:8px;">${b.semaphore.label}</span></h2>
+      <div class="hint">${b.headline}</div>
+      <div class="grid-kpi">
+        ${kpiCard('Órdenes', b.kpis.ordenes, false)}
+        ${kpiCard('Venta (MXN)', b.kpis.venta, true)}
+        ${kpiCard('AOV (MXN)', b.kpis.aov, true)}
+        ${kpiCard('Usuarios', b.kpis.usuarios, false)}
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h2>Últimos 12 meses — Venta (MXN)</h2>
+        <div class="hint">Agosto 2026 resaltado.</div>
+        <div class="chart-box"><canvas id="l12m-${b.id}"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Semana vs. semana anterior</h2>
+        <div class="hint">Última semana ISO cerrada de agosto vs. la anterior.</div>
+        <div class="grid-kpi" style="grid-template-columns:1fr 1fr;">
+          <div class="kpi"><div class="label">Órdenes</div><div class="value">${fmtNum(b.wow.actual.ordenes)}</div><div class="deltas"><div class="delta">${pctLabel(dOrdWow)}</div></div></div>
+          <div class="kpi"><div class="label">Venta (MXN)</div><div class="value">${fmtMoney(b.wow.actual.venta)}</div><div class="deltas"><div class="delta">${pctLabel(dVentaWow)}</div></div></div>
+        </div>
+        <h3 style="margin-top:18px;font-size:15px;">Funnel del mes</h3>
+        <div class="funnel-row">
+          <div class="funnel-step"><div class="n">${fmtNum(b.funnel.ss)}</div><div class="l">Sesiones</div></div>
+          <div class="funnel-arrow">→ ${conv1}% →</div>
+          <div class="funnel-step"><div class="n">${fmtNum(b.funnel.atc)}</div><div class="l">Add to cart</div></div>
+          <div class="funnel-arrow">→ ${conv2}% →</div>
+          <div class="funnel-step"><div class="n">${fmtNum(b.funnel.op)}</div><div class="l">Orden creada</div></div>
+          <div class="funnel-arrow">→ ${conv3}% →</div>
+          <div class="funnel-step"><div class="n">${fmtNum(b.funnel.opc)}</div><div class="l">Confirmada</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Sucursales</h2>
+      <div class="hint">Mes de agosto · ordenado por volumen de órdenes.</div>
+      <table>
+        <thead><tr><th>Sucursal</th><th>Órdenes</th><th>Tasa cancelación</th><th>Tasa defectos</th><th>Espera repartidor</th><th>Conversión (Confirm/Sesión)</th></tr></thead>
+        <tbody>${storesRows}</tbody>
+      </table>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h2>Producto top vs. mercado</h2>
+        <div class="hint">${b.benchmark.producto} · índice 100 = marca, línea = promedio de la categoría ${b.category} en el mercado.</div>
+        <div class="chart-box small"><canvas id="bench-${b.id}"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Top 10 productos del mes</h2>
+        <table>
+          <thead><tr><th>#</th><th>Producto</th><th>Órdenes</th><th>Venta (MXN)</th></tr></thead>
+          <tbody>${top10Rows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Oportunidades de combo y mix</h2>
+      <div class="opp-list">${oppHtml}</div>
+    </div>
+
+    <div class="card">
+      <h2>Plan 360 — próximos 3 meses</h2>
+      <div class="plan-grid">${planHtml}</div>
+    </div>
+
+    ${ideasHtml ? `<div class="card">
+      <h2>Ideas para conversación con la marca</h2>
+      <div class="hint">Propuestas de Mar para explorar directamente con el aliado.</div>
+      <div class="opp-list">${ideasHtml}</div>
+    </div>` : ''}
+  `;
+  panels.appendChild(sec);
+});
+
+selectTab('resumen');
+
+// ---- Charts ----
+Chart.defaults.font.family = "'Manrope', sans-serif";
+Chart.defaults.color = '#6b5d47';
+BRANDS.forEach(b=>{
+  const l12mCtx = document.getElementById('l12m-'+b.id);
+  const highlightIdx = b.l12m.data.length - 1;
+  new Chart(l12mCtx, {
+    type:'line',
+    data:{ labels:b.l12m.labels, datasets:[{
+      data:b.l12m.data, borderColor:'#fe663d', backgroundColor:'rgba(254,102,61,0.08)',
+      borderWidth:2.5, tension:.3, fill:true,
+      pointRadius: b.l12m.data.map((_,i)=> i===highlightIdx?6:2),
+      pointBackgroundColor: b.l12m.data.map((_,i)=> i===highlightIdx?'#ff3d55':'#fe663d')
+    }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>fmtMoney(c.raw)}}},
+      scales:{ y:{ticks:{callback:v=>fmtMoney(v)}, grid:{color:'#e9dfc9'}}, x:{grid:{display:false}} } }
+  });
+
+  const benchCtx = document.getElementById('bench-'+b.id);
+  new Chart(benchCtx, {
+    type:'line',
+    data:{ labels:b.benchmark.labels, datasets:[
+      {label:b.name, data:b.benchmark.labels.map(()=>100), borderColor:'#c9a24b', borderWidth:2.5, pointRadius:0, borderDash:[4,3]},
+      {label:'Mercado ('+b.category+')', data:b.benchmark.mercado, borderColor:'#2c5282', backgroundColor:'rgba(44,82,130,0.08)', borderWidth:2.5, tension:.3, fill:true, pointRadius:3}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}},
+      scales:{ y:{ticks:{callback:v=>v}, grid:{color:'#e9dfc9'}, title:{display:true,text:'Índice (100 = marca)'}}, x:{grid:{display:false}} } }
+  });
+});
+</script>
+</body>
+</html>
